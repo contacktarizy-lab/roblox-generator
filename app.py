@@ -6,7 +6,7 @@ import threading
 import asyncio
 import discord
 from discord.ext import commands
-from discord.ui import Button, View
+from discord.ui import Button, View, Modal, TextInput
 
 # --- НАСТРОЙКА FLASK (САЙТА) ---
 app = Flask(__name__)
@@ -32,7 +32,7 @@ class ClaimLog(db.Model):
     ip_address = db.Column(db.String(50), nullable=False)
     claimed_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-MAIN_HTML = """<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Roblox Account Generator</title><link href="https://googleapis.com" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif;}body{background:radial-gradient(circle at center, #1e2024 0%, #111215 100%);color:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;}.container{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:40px 30px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.5);backdrop-filter:blur(10px);}.logo-box{font-size:32px;font-weight:700;letter-spacing:1px;margin-bottom:10px;color:#ffffff;text-transform:uppercase;}.logo-box span{color:#00b060;}.subtitle{color:#8a8f98;font-size:14px;margin-bottom:30px;}.counter-badge{background:rgba(0,176,96,0.1);border:1px solid rgba(0,176,96,0.3);color:#00b060;padding:8px 16px;border-radius:50px;font-size:14px;font-weight:600;display:inline-block;margin-bottom:30px;}.btn-claim{width:100%;padding:16px;font-size:16px;font-weight:600;background:#00b060;color:white;border:none;border-radius:12px;cursor:pointer;transition:all 0.2s ease;box-shadow:0 6px 20px rgba(0,176,96,0.3);}.btn-claim:hover{background:#009652;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0, 176, 96, 0.4);}.btn-claim:active{transform:translateY(1px);}.result-box{margin-top:25px;padding:15px;border-radius:12px;font-size:15px;font-weight:600;line-height:1.6;}.success-box{background:rgba(0,176,96,0.1);border:1px solid #00b060;color:#ffffff;}.acc-display{background:rgba(0,0,0,0.3);border:1px dashed rgba(255,255,255,0.2);padding:10px;margin-top:10px;font-family:monospace;font-size:16px;color:#ffca28;border-radius:6px;user-select:all;}.error-box{background:rgba(239, 83, 80, 0.1);border:1px solid #ef5350;color:#ef5350;}</style></head><body><div class="container"><div class="logo-box">ROBLOX<span>GEN</span></div><p class="subtitle">Получай по 1 твинку каждые 24 часа в одни руки</p><div class="counter-badge">Доступно аккаунтов: {{ count }} шт.</div><form action="/claim" method="post"><button type="submit" class="btn-claim">🔥 Забрать аккаунт</button></form>{% if message %}{% if 'Ошибка' in message %}<div class="result-box error-box">{{ message }}</div>{% else %}<div class="result-box success-box"><div>Твой аккаунт успешно выдан! Копируй ниже:</div><div class="acc-display">{{ message }}</div></div>{% endif %}{% endif %}</div></body></html>"""
+MAIN_HTML = """<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Roblox Account Generator</title><link href="https://googleapis.com" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif;}body{background:radial-gradient(circle at center, #1e2024 0%, #111215 100%);color:#ffffff;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;}.container{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:40px 30px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.5);backdrop-filter:blur(10px);}.logo-box{font-size:32px;font-weight:700;letter-spacing:1px;margin-bottom:10px;color:#ffffff;text-transform:uppercase;}.logo-box span{color:#00b060;}.subtitle{color:#8a8f98;font-size:14px;margin-bottom:30px;}.counter-badge{background:rgba(0,176,96,0.1);border:1px solid rgba(0,176,96,0.3);color:#00b060;padding:8px 16px;border-radius:50px;font-size:14px;font-weight:600;display:inline-block;margin-bottom:30px;}.btn-claim{width:100%;padding:16px;font-size:16px;font-weight:600;background:#00b060;color:white;border:none;border-radius:12px;cursor:pointer;transition:all 0.2s ease;box-shadow:0 6px 20px rgba(0, 176, 96, 0.3);}.btn-claim:hover{background:#009652;transform:translateY(-2px);box-shadow:0 8px 25px rgba(0, 176, 96, 0.4);}.btn-claim:active{transform:translateY(1px);}.result-box{margin-top:25px;padding:15px;border-radius:12px;font-size:15px;font-weight:600;line-height:1.6;}.success-box{background:rgba(0, 176, 96, 0.1);border:1px solid #00b060;color:#ffffff;}.acc-display{background:rgba(0,0,0,0.3);border:1px dashed rgba(255,255,255,0.2);padding:10px;margin-top:10px;font-family:monospace;font-size:16px;color:#ffca28;border-radius:6px;user-select:all;}.error-box{background:rgba(239, 83, 80, 0.1);border:1px solid #ef5350;color:#ef5350;}</style></head><body><div class="container"><div class="logo-box">ROBLOX<span>GEN</span></div><p class="subtitle">Получай по 1 твинку каждые 24 часа в одни руки</p><div class="counter-badge">Доступно аккаунтов: {{ count }} шт.</div><form action="/claim" method="post"><button type="submit" class="btn-claim">🔥 Забрать аккаунт</button></form>{% if message %}{% if 'Ошибка' in message %}<div class="result-box error-box">{{ message }}</div>{% else %}<div class="result-box success-box"><div>Твой аккаунт успешно выдан! Копируй ниже:</div><div class="acc-display">{{ message }}</div></div>{% endif %}{% endif %}</div></body></html>"""
 ADMIN_HTML = """<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Панель управления</title><link href="https://googleapis.com" rel="stylesheet"><style>body{font-family:'Poppins',sans-serif;background:#f4f6f9;color:#333;padding:40px 20px;}.admin-card{background:white;max-width:550px;margin:0 auto;padding:30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.05);}h2{margin-bottom:20px;font-size:22px;color:#111;}input[type="password"],textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:15px;font-size:14px;box-sizing:border-box;}textarea{font-family:monospace;resize:vertical;}button{background:#111;color:white;border:none;padding:14px 20px;border-radius:8px;font-weight:600;cursor:pointer;width:100%;font-size:15px;}button:hover{background:#222;}.status-msg{padding:12px;border-radius:8px;margin-top:15px;font-size:14px;font-weight:600;}.status-success{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}.status-error{background:#ffebee;color:#c62828;border:1px solid #ffcdd2;}.links{margin-top:20px;text-align:center;}.links a{color:#666;text-decoration:none;font-size:14px;}.links a:hover{color:#111;}</style></head><body><div class="admin-card"><h2>📥 Загрузка новой партии аккаунтов</h2><form action="/admin" method="post"><input type="password" name="password" placeholder="Введите секретный пароль" required><textarea name="accounts" rows="8" placeholder="Вставьте список в формате логин:пароль&#10;Каждый аккаунт с новой строки" required></textarea><button type="submit">Загрузить данные в базу</button></form>{% if msg %}<div class="status-msg {% if 'Ошибка' in msg %}status-error{% else %}status-success{% endif %}">{{ msg }}</div>{% endif %}<div class="links"><a href="/">← На главную страницу раздачи</a></div></div></body></html>"""
 
 def get_avail_count():
@@ -82,61 +82,109 @@ intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Интерактивное меню выбора ролей для команды
-class RoleView(View):
-    def __init__(self):
-        super().__init__(timeout=None) # Бесконечно работающие кнопки
+# Всплывающее окно анкеты внутри Дискорда
+class ApplicationModal(Modal, title="Анкета в команду RBXGEN"):
+    contacts = TextInput(label="Твой Telegram или Discord для связи", placeholder="@username", required=True)
+    role = TextInput(label="Какая роль? (Поставщик / Пиарщик)", placeholder="Пиарщик", required=True)
+    skills = TextInput(label="Опиши свой опыт работы кратко", style=discord.TextStyle.paragraph, placeholder="Умею лить трафик с ТТ / есть автореггер...", required=True)
 
-    @discord.ui.button(label="⚙️ Стать Поставщиком", style=discord.ButtonStyle.green, custom_id="role_supplier")
-    async def supplier_button(self, interaction: discord.Interaction, button: Button):
-        role = discord.utils.get(interaction.guild.roles, name="Поставщик")
-        if not role:
-            role = await interaction.guild.create_role(name="Поставщик", color=discord.Color.green())
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.send_message("✅ Твоя заявка успешно отправлена админам! Комната закроется через 5 секунд.", ephemeral=True)
         
-        if role in interaction.user.roles:
-            await interaction.user.remove_roles(role)
-            await interaction.response.send_message("❌ Роль 'Поставщик' успешно удалена!", ephemeral=True)
-        else:
-            await interaction.user.add_roles(role)
-            await interaction.response.send_message("✅ Тебе выдана роль 'Поставщик'! Добро пожаловать в тиму.", ephemeral=True)
+        # Ищем канал на сервере с именем 'заявки-логи', чтобы скинуть туда результат
+        log_channel = discord.utils.get(interaction.guild.text_channels, name="заявки-логи")
+        if not log_channel:
+            # Если канала нет, бот создаст его скрытым от обычных людей
+            overwrites = {
+                interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                interaction.guild.me: discord.PermissionOverwrite(read_messages=True)
+            }
+            log_channel = await interaction.guild.create_text_channel("заявки-логи", overwrites=overwrites)
 
-    @discord.ui.button(label="🚀 Стать Пиарщиком", style=discord.ButtonStyle.blurple, custom_id="role_promoter")
-    async def promoter_button(self, interaction: discord.Interaction, button: Button):
-        role = discord.utils.get(interaction.guild.roles, name="Пиарщик")
-        if not role:
-            role = await interaction.guild.create_role(name="Пиарщик", color=discord.Color.blue())
-            
-        if role in interaction.user.roles:
-            await interaction.user.remove_roles(role)
-            await interaction.response.send_message("❌ Роль 'Пиарщик' успешно удалена!", ephemeral=True)
-        else:
-            await interaction.user.add_roles(role)
-            await interaction.response.send_message("✅ Тебе выдана роль 'Пиарщик'! Гони трафик на rbxgen.ru.", ephemeral=True)
+        embed = discord.Embed(title="📥 Новая заявка в команду!", color=discord.Color.green())
+        embed.add_field(name="Пользователь:", value=f"{interaction.user.mention} ({interaction.user.name})", inline=False)
+        embed.add_field(name="Контакты для связи:", value=self.contacts.value, inline=False)
+        embed.add_field(name="Желаемая роль:", value=self.role.value, inline=False)
+        embed.add_field(name="Опыт и навыки:", value=self.skills.value, inline=False)
+        embed.set_footer(text=f"ID пользователя: {interaction.user.id}")
+        
+        await log_channel.send(embed=embed)
+        
+        # Удаляем тикет-канал через 5 секунд
+        await asyncio.sleep(5)
+        await interaction.channel.delete()
+
+# Кнопки управления внутри тикета
+class TicketControlView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="📝 Заполнить Анкету", style=discord.ButtonStyle.green, custom_id="fill_app")
+    async def fill_button(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_modal(ApplicationModal())
+
+    @discord.ui.button(label="❌ Закрыть Тикет", style=discord.ButtonStyle.danger, custom_id="close_ticket")
+    async def close_button(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_message("Удаление комнаты...", ephemeral=True)
+        await interaction.channel.delete()
+
+# Главная кнопка "Подать заявку" под объявлением
+class MainJoinView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="💼 Подать заявку в тиму", style=discord.ButtonStyle.primary, custom_id="open_ticket_btn")
+    async def open_ticket(self, interaction: discord.Interaction, button: Button):
+        # Проверяем, нет ли уже открытого тикета у этого юзера
+        ticket_name = f"заявка-{interaction.user.name.lower()}"
+        existing_channel = discord.utils.get(interaction.guild.text_channels, name=ticket_name)
+        
+        if existing_channel:
+            await interaction.response.send_message(f"❌ У тебя уже есть открытая комната: {existing_channel.mention}", ephemeral=True)
+            return
+
+        # Создаем приватный канал для заполнения
+        overwrites = {
+            interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            interaction.user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            interaction.guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        }
+        
+        ticket_channel = await interaction.guild.create_text_channel(ticket_name, overwrites=overwrites)
+        await interaction.response.send_message(f"✅ Комната для подачи заявки создана: {ticket_channel.mention}", ephemeral=True)
+        
+        # Отправляем приветственное сообщение внутрь тикета
+        embed = discord.Embed(
+            title="Добро пожаловать в тикет подачи заявки!",
+            description="Нажми на зеленую кнопку ниже, чтобы открыть форму анкеты. Заполни все поля честно.",
+            color=discord.Color.blurple()
+        )
+        await ticket_channel.send(content=interaction.user.mention, embed=embed, view=TicketControlView())
 
 @bot.event
 async def on_ready():
     print(f"Робот {bot.user.name} успешно запущен в Discord!")
-    bot.add_view(RoleView()) # Активируем отслеживание кнопок после перезапуска
+    bot.add_view(MainJoinView())
+    bot.add_view(TicketControlView())
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def setup_team(ctx):
-    """Команда для создания интерактивного меню набора в тиму (только для админов)"""
+async def setup_apps(ctx):
+    """Команда для создания главного поста с кнопкой заявок (Только для админов)"""
     embed = discord.Embed(
-        title="👋 Набор в команду проекта RBXGEN.RU!",
+        title="💼 Набор в команду проекта RBXGEN.RU",
         description=(
-            "Наш генератор твинков расширяется, и мы собираем мощную тиму!\n\n"
-            "**Выбери свою роль, нажав на кнопку ниже:**\n"
-            "⚙️ **Поставщик** — если умеешь создавать/фармить аккаунты пачками.\n"
-            "🚀 **Пиарщик** — если умеешь лить трафик из TikTok/Shorts/Discord."
+            "Мы ищем амбициозных ребят, готовых развивать проект вместе с нами!\n\n"
+            "**Кого мы ищем:**\n"
+            "⚙️ **Поставщики (Реггеры)** — создание аккаунтов Roblox.\n"
+            "🚀 **Пиарщики (Трафферы)** — продвижение ссылки в соцсетях.\n\n"
+            "Нажми на кнопку ниже, чтобы открыть приватный тикет и подать анкету!"
         ),
         color=discord.Color.dark_gray()
     )
-    embed.set_footer(text="О деталях сотрудничества пишите создателю сервера в ЛС!")
-    await ctx.send(embed=embed, view=RoleView())
-    await ctx.message.delete() # Удаляем системную команду автора
+    await ctx.send(embed=embed, view=MainJoinView())
+    await ctx.message.delete()
 
-# --- ЗАПУСК ПОТОКОВ (САЙТ + БОТ) ---
 def run_discord_bot():
     token = os.environ.get("DISCORD_TOKEN")
     if token:
@@ -150,11 +198,9 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     
-    # Запускаем бота в отдельном независимом потоке, чтобы сайт не зависал
     bot_thread = threading.Thread(target=run_discord_bot)
     bot_thread.daemon = True
     bot_thread.start()
     
-    # Запускаем основной Flask сайт
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
