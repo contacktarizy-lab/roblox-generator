@@ -113,9 +113,25 @@ MAIN_HTML = """
         <div class="logo-box">ROBLOX<span>GEN</span></div>
         <p class="subtitle">Получай по 1 твинку каждые 24 часа в одни руки</p>
         <div class="counter-badge">Доступно аккаунтов: {{ count }} шт.</div>
-        <form action="/claim" method="post">
-            <button type="submit" class="btn-claim">🔥 Забрать аккаунт</button>
-        </form>
+<form action="/claim" method="post">
+    <button type="submit" class="btn-claim">🔥 Забрать аккаунт</button>
+</form>
+<!-- ТВОЙ КОД ОТ ADSTERRA НАЧИНАЕТСЯ ТУТ -->
+<div style="margin-top: 25px;">
+    <script type="text/javascript">
+        <script>
+  atOptions = {
+    'key' : '5c3e69e1b28bd572306adcfad0599076',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highrevenueformat.com/5c3e69e1b28bd572306adcfad0599076/invoke.js"></script>
+    </script>
+</div>
+<!-- ТВОЙ КОД ОТ ADSTERRA ЗАКАНЧИВАЕТСЯ ТУТ -->
         {% if message %}
             {% if 'Ошибка' in message %}
                 <div class="result-box error-box">{{ message }}</div>
