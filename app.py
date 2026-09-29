@@ -6,9 +6,14 @@ import os
 app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "roblox.db")}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Если сайт запущен на хостинге Render с подключенным диском /data, 
+# сохраняем базу туда. Если запустили дома — сохраняем в папку с проектом.
+if os.path.exists('/data'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/roblox.db'
+else:
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "roblox.db")}'
+
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "CRAZY_DEFAULT_PASS_123")
 
