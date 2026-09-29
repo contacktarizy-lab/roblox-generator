@@ -10,8 +10,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "rob
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-ADMIN_PASSWORD = "SUPER_SECRET_PASSWORD"
-
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "CRAZY_DEFAULT_PASS_123")
 
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
