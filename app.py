@@ -174,43 +174,168 @@ async def read_root():
     # Каждый раз при обновлении страницы берем точную цифру из Neon DB
     total_accs = get_total_accounts_count()
     
+   # =====================================================================
+# 4. НАСТРОЙКА НЕОНОВОГО ВЕБ-САЙТА (FASTAPI С ЧИСТЫМ CSS)
+# =====================================================================
+app = FastAPI()
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    total_accs = get_total_accounts_count()
+    
     html_template = f"""
     <!DOCTYPE html>
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>rbxgen | Dashboard</title>
-        <script src="https://tailwindcss.com"></script>
+        <style>
+            /* Глубокий темный градиент на фоне */
+            body {{
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                background: radial-gradient(circle at top right, #161224 0%, #0b0c10 100%);
+                min-height: min-content;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                overflow: hidden;
+            }}
+
+            /* Карточка с эффектом матового стекла (Glassmorphism) */
+            .dashboard-card {{
+                background: rgba(255, 255, 255, 0.03);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 24px;
+                padding: 35px;
+                width: 100%;
+                max-width: 380px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.05);
+            }}
+
+            /* Шапка панели */
+            .card-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }}
+
+            .logo {{
+                font-size: 24px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                color: #a78bfa;
+                margin: 0;
+            }}
+
+            .version-tag {{
+                font-size: 11px;
+                color: #34d399;
+                background: rgba(52, 211, 153, 0.1);
+                padding: 3px 10px;
+                border-radius: 50px;
+                border: 1px solid rgba(52, 211, 153, 0.2);
+                margin-left: 8px;
+                vertical-align: middle;
+            }}
+
+            .subtitle {{
+                font-size: 13px;
+                color: #9ca3af;
+            }}
+
+            /* Сетка статистики */
+            .stats-grid {{
+                display: grid;
+                grid-template-cols: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 25px;
+            }}
+
+            .stat-box {{
+                background: rgba(18, 19, 26, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.03);
+                border-radius: 16px;
+                padding: 15px;
+            }}
+
+            .stat-label {{
+                font-size: 11px;
+                color: #9ca3af;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }}
+
+            .stat-value {{
+                font-size: 20px;
+                font-weight: 700;
+            }}
+
+            .text-emerald {{ color: #34d399; }}
+
+            /* Пушечная фиолетовая кнопка с неоновым свечением */
+            .gen-button {{
+                width: 100%;
+                background: #7c3aed;
+                color: #ffffff;
+                border: none;
+                border-radius: 14px;
+                padding: 14px 20px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+            }}
+
+            .gen-button:hover {{
+                background: #6d28d9;
+                box-shadow: 0 12px 30px rgba(124, 58, 237, 0.5);
+                transform: translateY(-1px);
+            }}
+
+            .gen-button:active {{
+                transform: translateY(1px);
+            }}
+        </style>
     </head>
-    <!-- Градиентный фон в стиле Dark Tech -->
-    <body class="bg-gradient-to-tr from-[#0b0c10] via-[#161224] to-[#0b0c10] min-h-screen text-white font-sans flex items-center justify-center">
+    <body>
         
-        <!-- Карточка Glassmorphism -->
-        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl shadow-purple-500/10">
-            <div class="flex items-center justify-between mb-8">
-                <h1 class="text-2xl font-bold tracking-wider text-purple-400">rbxgen <span class="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">v2.0</span></h1>
-                <div class="text-sm text-gray-400">Панель твинков</div>
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h1 class="logo">rbxgen<span class="version-tag">v2.0</span></h1>
+                <div class="subtitle">Панель</div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-[#12131a]/60 border border-white/5 rounded-2xl p-4">
-                    <div class="text-xs text-gray-400 mb-1">Всего аккаунтов</div>
-                    <div class="text-xl font-bold text-white">{total_accs}</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Всего акков</div>
+                    <div class="stat-value">{total_accs}</div>
                 </div>
-                <div class="bg-[#12131a]/60 border border-white/5 rounded-2xl p-4">
-                    <div class="text-xs text-gray-400 mb-1">База Данных</div>
-                    <div class="text-xl font-bold text-emerald-400">Neon Cloud</div>
+                <div class="stat-box">
+                    <div class="stat-label">База Данных</div>
+                    <div class="stat-value text-emerald">Neon Cloud</div>
                 </div>
             </div>
             
-            <button onclick="alert('Используйте кнопки в Discord боте для генерации!')" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-3.5 px-4 rounded-xl transition duration-300 shadow-lg shadow-purple-600/30 active:scale-[0.98]">
-                ⚡ Сгенерировать новый аккаунт
+            <button onclick="alert('Используйте кнопки в вашем Discord боте для генерации твинков!')" class="gen-button">
+                ⚡ Сгенерировать твинк
             </button>
         </div>
+
     </body>
     </html>
     """
     return html_template
+
 
 @app.get("/health")
 async def health_check():
